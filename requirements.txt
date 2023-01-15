@@ -1,2 +1,3 @@
-espnet~=202211
+espnet
 parallel-wavegan~=0.5.5
+fastapi
