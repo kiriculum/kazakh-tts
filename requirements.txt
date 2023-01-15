@@ -1,4 +1,4 @@
-espnet~=202211
+espnet
 parallel-wavegan~=0.5.5
 fastapi~=0.89.1
 uvicorn[standard]~=0.20.0

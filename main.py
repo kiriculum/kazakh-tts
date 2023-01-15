@@ -17,7 +17,7 @@ def auth(token: str = Depends(APIKeyQuery(name='token'))):
 
 
 @app.get('/synthesize/')
-async def synthesize(text: str, model: str, token: str = Depends(auth)):
+async def synthesize(text: str, model: str, _token: str = Depends(auth)):
     try:
         all_models = available_models()
     except ModelDontExist as e:
@@ -44,5 +44,7 @@ async def voices(token: str = Depends(auth)) -> list[str]:
 if __name__ == '__main__':
     uvicorn.run(
         'main:app',
+        host=config.host,
+        port=config.port,
         reload=True
     )

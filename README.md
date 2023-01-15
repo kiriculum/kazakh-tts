@@ -6,11 +6,8 @@
 ### Basics
 
 * clone/copy project files
-* `cd kazakh-tts`
-* `pip -m venv venv`
-* `source venv/bin/activate`
-* `pip install -r requirements.txt`
-### Start with `python3 main.py`
+* `cd kazakh-tts & setup.sh`
+
 
 
 ### Models
@@ -32,3 +29,7 @@ models:
       checkpoint-400000steps.plk
       config.yml
 ```
+
+
+## Start
+* use the starting script e.g. `./start.sh`
