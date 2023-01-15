@@ -3,11 +3,11 @@
 ### Provides REST API endpoints to synthesize human voice from a kazakh text.  
 
 ## Deployment
-### Prerequisite - python3.10, pip, venv, dev
+### Prerequisite - python3.10, pip, venv, dev, sndfile
 To install those in Ubuntu you can use
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa &
-  apt install python3.10 python3.10-dev python3.10-venv python3-pip
+  apt install python3.10 python3.10-dev python3.10-venv python3-pip, libsndfile1
 ```
 
 ### Basics
