@@ -10,14 +10,14 @@ from synthesize import process_text, available_models, ModelDontExist, check_voi
 app = FastAPI()
 
 
-def auth(token: str = Depends(APIKeyQuery(name='token'))):
+def auth(token: str = Depends(APIKeyQuery(name='token'))) -> str:
     if token not in config.api_tokens:
         raise HTTPException(401)
     return token
 
 
 @app.get('/synthesize/')
-async def synthesize(text: str, model: str, _token: str = Depends(auth)):
+async def synthesize(text: str, model: str, _token: str = Depends(auth)) -> FileResponse:
     try:
         all_models = available_models()
     except ModelDontExist as e:
@@ -34,7 +34,7 @@ async def synthesize(text: str, model: str, _token: str = Depends(auth)):
 
 
 @app.get('/voices/')
-async def voices(token: str = Depends(auth)) -> list[str]:
+async def voices(_token: str = Depends(auth)) -> list[str]:
     try:
         return sorted(available_models())
     except ModelDontExist as e:
@@ -42,6 +42,7 @@ async def voices(token: str = Depends(auth)) -> list[str]:
 
 
 if __name__ == '__main__':
+    # Start uvicorn server with tts app served
     uvicorn.run(
         'main:app',
         host=config.host,
