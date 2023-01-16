@@ -12,7 +12,9 @@ app = FastAPI()
 
 def auth(token: str = Depends(APIKeyQuery(name='token'))) -> str:
     if token not in config.api_tokens:
-        raise HTTPException(401)
+        e = HTTPException(401)
+        logger.info(e)
+        raise e
     return token
 
 
@@ -21,9 +23,12 @@ async def synthesize(text: str, model: str, _token: str = Depends(auth)) -> File
     try:
         all_models = available_models()
     except ModelDontExist as e:
+        logger.info(str(e))
         raise HTTPException(400, e)
     if model not in all_models:
-        raise HTTPException(404, f'Model \'{model}\' not found')
+        e = HTTPException(404, f'Model \'{model}\' not found')
+        logger.info(str(e))
+        raise e
     file_path = check_voice_cache(text, model)
     if file_path:
         logger.info(f'Voice audio found in cache with model \'{model}\' for text: \'{text}\'')
