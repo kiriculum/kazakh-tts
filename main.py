@@ -1,3 +1,5 @@
+import re
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import FileResponse
@@ -5,6 +7,7 @@ from fastapi.security import APIKeyQuery
 
 import config
 from api_logging import logger
+from number_spell import transform
 from synthesize import process_text, available_models, ModelDontExist, check_voice_cache
 
 app = FastAPI()
@@ -20,6 +23,7 @@ def auth(token: str = Depends(APIKeyQuery(name='token'))) -> str:
 
 @app.get('/synthesize/')
 async def synthesize(text: str, model: str, _token: str = Depends(auth)) -> FileResponse:
+    text = re.sub(r'\d+', lambda x: transform(int(x.group())), text)
     try:
         all_models = available_models()
     except ModelDontExist as e:
