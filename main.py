@@ -8,7 +8,7 @@ from fastapi.security import APIKeyQuery
 import config
 from api_logging import logger
 from number_spell import transform
-from synthesize import process_text, available_models, ModelDontExist, check_voice_cache
+from synthesize import process_text, available_models, ModelDontExist, check_voice_cache, preprocess_wav
 
 app = FastAPI()
 
@@ -22,7 +22,8 @@ def auth(token: str = Depends(APIKeyQuery(name='token'))) -> str:
 
 
 @app.get('/synthesize/')
-async def synthesize(text: str, model: str, _token: str = Depends(auth)) -> FileResponse:
+async def synthesize(text: str, model: str, tempo: float = 1.0, pitch: int = 0,
+                     _token: str = Depends(auth)) -> FileResponse:
     text = re.sub(r'\d+', lambda x: transform(int(x.group())), text)
     try:
         all_models = available_models()
@@ -39,6 +40,7 @@ async def synthesize(text: str, model: str, _token: str = Depends(auth)) -> File
     else:
         file_path, rtf = process_text(text, model)
         logger.info(f'Voice audio synthesized with model \'{model}\' for text: \'{text}\', RTF={rtf}')
+    file_path = preprocess_wav(file_path, tempo, pitch)
     return FileResponse(file_path)
 
 

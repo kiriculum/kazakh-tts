@@ -1,13 +1,17 @@
 import time
-from pathlib import Path
 from hashlib import sha1
+from pathlib import Path
 
-import soundfile as sf
+from scipy.io.wavfile import write
 import torch
+import torchaudio
 from espnet2.bin.tts_inference import Text2Speech
 from parallel_wavegan.utils import load_model
 
-output_folder = Path('synthesized_wavs')
+synth_folder = Path('synthesized_wavs')
+output_folder = Path('output_wavs')
+if not synth_folder.exists():
+    synth_folder.mkdir(parents=True, exist_ok=True)
 if not output_folder.exists():
     output_folder.mkdir(parents=True, exist_ok=True)
 
@@ -52,17 +56,33 @@ def process_text(text: str, model: str) -> tuple[Path, float]:
         wav = vocoder.inference(mel['feat_gen'])
 
     name = f'tts-{model}-{sha1(text.encode()).hexdigest()}.wav'
-    output_wav = output_folder / name
+    output_wav = synth_folder / name
+
+    write(output_wav, text2speech.fs, wav.numpy())
+    # torchaudio.save(output_wav, torch.clamp(wav, -1, 1), text2speech.fs)
+    # soundfile.write(output_wav, wav, text2speech.fs, "PCM_16")
+
     rtf = round((time.time() - start) / (len(wav) / text2speech.fs), 3)  # processing time to sample length ratio
-
-    sf.write(output_wav, wav.numpy(), text2speech.fs, "PCM_16")
-
     return output_wav, rtf
+
+
+def preprocess_wav(input_file: Path, tempo: float, pitch: int) -> Path:
+    waveform, sample_rate = torchaudio.load(input_file)
+    effects = [
+        ['tempo', str(tempo)],
+        ['pitch', str(pitch * 100)],
+        ['rate', f'{sample_rate}'],
+    ]
+    waveform, sample_rate = torchaudio.sox_effects.apply_effects_tensor(waveform, sample_rate, effects)
+    name = f'tts-{hash(waveform)}.wav'
+    output_wav = output_folder / name
+    torchaudio.save(output_wav, waveform, sample_rate)
+    return output_wav
 
 
 def check_voice_cache(text: str, model: str) -> Path | None:
     name = f'tts-{model}-{sha1(text.encode()).hexdigest()}.wav'
-    file_path = Path(output_folder) / name
+    file_path = Path(synth_folder) / name
     if file_path.exists():
         return file_path
 
@@ -70,4 +90,5 @@ def check_voice_cache(text: str, model: str) -> Path | None:
 if __name__ == '__main__':
     models = available_models()
     sample_text = 'Менің атым Қожа болады. Ал сіздің атыңыз қалай?'
-    process_text(sample_text, next(iter(models)))
+    res = process_text(sample_text, next(iter(models)))
+    res = preprocess_wav(res[0], 1.1, 1)
